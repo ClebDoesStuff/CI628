@@ -3,7 +3,7 @@
 void MyGame::on_receive(std::string cmd, std::vector<std::string>& args) {
     if (cmd == "GAME_DATA") {
         // we should have exactly 4 arguments
-        if (args.size() == 6) {
+        if (args.size() == 4) {
             game_data.player1Y = stoi(args.at(0));
             game_data.player2Y = stoi(args.at(1));
             game_data.ballX = stoi(args.at(2));
@@ -40,6 +40,10 @@ void MyGame::update() {
     player2.y = game_data.player2Y;
     ball.y = game_data.ballY;
     ball.x = game_data.ballX;
+    //std::cout << "player1.y = " << player1.y << std::endl;
+    //std::cout << "player2.y = " << player2.y << std::endl;
+    //std::cout << "ball.y = " << ball.y << std::endl;
+    //std::cout << "ball.x = " << ball.x << std::endl;
 }
 
 // This was obtained at https://stackoverflow.com/questions/36449616/sdl2-how-to-draw-dotted-line
@@ -64,6 +68,6 @@ void MyGame::render(SDL_Renderer* renderer) {
     SDL_RenderFillRect(renderer, &player1);
     SDL_RenderFillRect(renderer, &player2);
     SDL_RenderFillRect(renderer, &ball);
-    DrawDottedLine(renderer, 400, 0, 400, 600);
+    //DrawDottedLine(renderer, 400, 0, 400, 600);
  }
 
