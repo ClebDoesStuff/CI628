@@ -1,5 +1,15 @@
 #include "MyGame.h"
+
+//MyGame::MyGame(TTF_Font* font) {
+//    this->font = font;
+//}
+
 using namespace std;
+
+const int WIDTH = 800;
+const int HEIGHT = 600;
+
+const int USE_FULL_TEXTURE = NULL;
 
 void MyGame::on_receive(std::string cmd, std::vector<std::string>& args) {
     if (cmd == "GAME_DATA") {
@@ -58,6 +68,50 @@ void MyGame::update() {
     //cout << "P2: " << p2score << std::endl;
 }
 
+void DrawImage(SDL_Renderer* renderer, const char* location, int x, int y, int w, int h) {
+    SDL_Rect dst = { x, y, w , h };
+    auto surface = IMG_Load(location);
+    if (surface != nullptr) {
+        //cout << location << " was loaded" << endl;
+    }
+    else {
+        //cout << location << " has not been loaded" << endl;
+    }
+
+    auto texture = SDL_CreateTextureFromSurface(renderer, surface);
+
+    SDL_RenderCopy(renderer, texture, USE_FULL_TEXTURE, &dst);
+    //SDL_RenderPresent(renderer);
+}
+
+void MyGame::DrawText(SDL_Renderer* renderer, const char* location, int fontsize, int score, int x, int y, int w, int h) {
+    TTF_Font* font = TTF_OpenFont(location, fontsize);
+    if (font != nullptr) {
+        //cout << "font was loaded" << endl;
+    }
+    else {
+        //cout << "font has not been loaded" << endl;
+    }
+    
+    SDL_Color text_color = { 255, 255, 255, 255 };
+    
+    string text_score = to_string(score);
+    
+    SDL_Surface* text_surface = TTF_RenderText_Blended(font, text_score.c_str(), text_color);
+
+    if (text_surface != nullptr) {
+        SDL_Texture* text_texture = SDL_CreateTextureFromSurface(renderer, text_surface);
+        SDL_FreeSurface(text_surface);
+        if (text_texture != nullptr) {
+            SDL_QueryTexture(text_texture, NULL, NULL, &w, &h);
+
+            SDL_Rect dst = { x,y,w,h };
+
+            //NULL to draw 
+            SDL_RenderCopy(renderer, text_texture, NULL, &dst);
+        }
+    }
+}
 
 // This was obtained at https://stackoverflow.com/questions/36449616/sdl2-how-to-draw-dotted-line
 // it uses the Bresenham Algoithm to create a dotted line
@@ -78,10 +132,14 @@ void DrawDottedLine(SDL_Renderer* renderer, int x0, int y0, int x1, int y1) {
 
 void MyGame::render(SDL_Renderer* renderer) {
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    DrawImage(renderer, "assets/background.png", 0, 0, WIDTH, HEIGHT);
+    DrawDottedLine(renderer, 410, 0, 410, 600);
     SDL_RenderFillRect(renderer, &player1);
     SDL_RenderFillRect(renderer, &player2);
     SDL_RenderFillRect(renderer, &ball);
-    DrawDottedLine(renderer, 400, 0, 400, 600);
+    DrawText(renderer, "assets/Peepo.ttf", 64, p1score, 100, 20, 40, 40);
+    DrawText(renderer, "assets/Peepo.ttf", 64, p2score, 650, 20, 40, 40);
  }
+
 
 

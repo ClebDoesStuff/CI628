@@ -5,6 +5,9 @@
 #include <vector>
 #include <string>
 
+#include "SDL_image.h"
+#include "SDL_ttf.h"
+
 #include "SDL.h"
 
 static struct GameData {
@@ -25,8 +28,10 @@ class MyGame {
         SDL_Rect player1 = { 200, 300, 20, 60 };
         SDL_Rect player2 = { 580, 300, 20, 60 };
         SDL_Rect ball = { 400, 300, 15, 15 };
-        int p1score;
-        int p2score;
+        int p1score = 0;
+        int p2score = 0;
+        TTF_Font* font;
+        
 
     public:
         std::vector<std::string> messages;
@@ -35,6 +40,7 @@ class MyGame {
         void send(std::string message);
         void input(SDL_Event& event);
         void update();
+        void DrawText(SDL_Renderer* renderer, const char* location, int fontsize, int score, int x, int y, int w, int h);
         void render(SDL_Renderer* renderer);
 };
 

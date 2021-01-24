@@ -1,6 +1,7 @@
 #include "SDL_net.h"
 
 #include "MyGame.h"
+#include "SDL_ttf.h"
 
 using namespace std;
 
@@ -143,6 +144,11 @@ int main(int argc, char** argv) {
     if (SDL_Init(0) == -1) {
         printf("SDL_Init: %s\n", SDL_GetError());
         exit(1);
+    }
+
+    if (TTF_Init() == -1) {
+        printf("TTF_Init: %s\n", SDL_GetError());
+        exit(5);
     }
 
     // Initialize SDL_net
