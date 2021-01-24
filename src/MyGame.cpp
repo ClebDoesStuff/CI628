@@ -1,9 +1,5 @@
 #include "MyGame.h"
 
-//MyGame::MyGame(TTF_Font* font) {
-//    this->font = font;
-//}
-
 using namespace std;
 
 const int WIDTH = 800;
@@ -58,40 +54,57 @@ void MyGame::update() {
     player2.y = game_data.player2Y;
     ball.y = game_data.ballY;
     ball.x = game_data.ballX;
-    //std::cout << "player1.y = " << player1.y << std::endl;
-    //std::cout << "player2.y = " << player2.y << std::endl;
-    //std::cout << "ball.y = " << ball.y << std::endl;
-    //std::cout << "ball.x = " << ball.x << std::endl;
+            //std::cout << "player1.y = " << player1.y << std::endl;
+            //std::cout << "player2.y = " << player2.y << std::endl;
+            //std::cout << "ball.y = " << ball.y << std::endl;
+            //std::cout << "ball.x = " << ball.x << std::endl;
     p1score = scores.player1score;
     p2score = scores.player2score;
-    //cout << "P1: " << p1score << std::endl;
-    //cout << "P2: " << p2score << std::endl;
+            //cout << "P1: " << p1score << std::endl;
+            //cout << "P2: " << p2score << std::endl;
+}
+
+void DrawSpecial(SDL_Renderer* renderer, const char* location, const SDL_Rect* rect) {
+    auto surface = IMG_Load(location);
+                        if (surface != nullptr) {
+                                //cout << location << " was loaded" << endl;
+                        }
+                        else {
+                                //cout << location << " has not been loaded" << endl;
+                        }
+
+    auto texture = SDL_CreateTextureFromSurface(renderer, surface);
+
+    SDL_RenderCopy(renderer, texture, USE_FULL_TEXTURE, rect);
+    SDL_FreeSurface(surface);
+    SDL_DestroyTexture(texture);
 }
 
 void DrawImage(SDL_Renderer* renderer, const char* location, int x, int y, int w, int h) {
     SDL_Rect dst = { x, y, w , h };
     auto surface = IMG_Load(location);
-    if (surface != nullptr) {
-        //cout << location << " was loaded" << endl;
-    }
-    else {
-        //cout << location << " has not been loaded" << endl;
-    }
+                        if (surface != nullptr) {
+                            //cout << location << " was loaded" << endl;
+                        }
+                        else {
+                            //cout << location << " has not been loaded" << endl;
+                        }
 
     auto texture = SDL_CreateTextureFromSurface(renderer, surface);
 
     SDL_RenderCopy(renderer, texture, USE_FULL_TEXTURE, &dst);
-    //SDL_RenderPresent(renderer);
+    SDL_FreeSurface(surface);
+    SDL_DestroyTexture(texture);
 }
 
 void MyGame::DrawText(SDL_Renderer* renderer, const char* location, int fontsize, int score, int x, int y, int w, int h) {
     TTF_Font* font = TTF_OpenFont(location, fontsize);
-    if (font != nullptr) {
-        //cout << "font was loaded" << endl;
-    }
-    else {
-        //cout << "font has not been loaded" << endl;
-    }
+                        if (font != nullptr) {
+                            //cout << "font was loaded" << endl;
+                        }
+                        else {
+                            //cout << "font has not been loaded" << endl;
+                        }
     
     SDL_Color text_color = { 255, 255, 255, 255 };
     
@@ -101,7 +114,6 @@ void MyGame::DrawText(SDL_Renderer* renderer, const char* location, int fontsize
 
     if (text_surface != nullptr) {
         SDL_Texture* text_texture = SDL_CreateTextureFromSurface(renderer, text_surface);
-        SDL_FreeSurface(text_surface);
         if (text_texture != nullptr) {
             SDL_QueryTexture(text_texture, NULL, NULL, &w, &h);
 
@@ -110,6 +122,8 @@ void MyGame::DrawText(SDL_Renderer* renderer, const char* location, int fontsize
             //NULL to draw 
             SDL_RenderCopy(renderer, text_texture, NULL, &dst);
         }
+        SDL_FreeSurface(text_surface);
+        SDL_DestroyTexture(text_texture);
     }
 }
 
@@ -128,17 +142,20 @@ void DrawDottedLine(SDL_Renderer* renderer, int x0, int y0, int x1, int y1) {
         if (e2 < dx) { err += dx; y0 += sy; }
         count = (count + 1) % 20;
     }
+    
 }
 
 void MyGame::render(SDL_Renderer* renderer) {
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     DrawImage(renderer, "assets/background.png", 0, 0, WIDTH, HEIGHT);
-    DrawDottedLine(renderer, 410, 0, 410, 600);
-    SDL_RenderFillRect(renderer, &player1);
-    SDL_RenderFillRect(renderer, &player2);
-    SDL_RenderFillRect(renderer, &ball);
+    //DrawDottedLine(renderer, 400, 0, 400, 600);
+    //Draw Score
     DrawText(renderer, "assets/Peepo.ttf", 64, p1score, 100, 20, 40, 40);
     DrawText(renderer, "assets/Peepo.ttf", 64, p2score, 650, 20, 40, 40);
+    //Draw player bats and ball
+    DrawSpecial(renderer, "assets/batleft.png", &player1);
+    DrawSpecial(renderer, "assets/batright.png", &player2);
+    DrawSpecial(renderer, "assets/starball.png", &ball);
  }
 
 

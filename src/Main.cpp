@@ -88,6 +88,7 @@ void loop(SDL_Renderer* renderer) {
                 switch (event.key.keysym.sym) {
                     case SDLK_ESCAPE:
                         is_running = false;
+                        SDL_Quit();
                         break;
 
                     default:
