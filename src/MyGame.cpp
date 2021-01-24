@@ -1,4 +1,5 @@
 #include "MyGame.h"
+using namespace std;
 
 void MyGame::on_receive(std::string cmd, std::vector<std::string>& args) {
     if (cmd == "GAME_DATA") {
@@ -9,9 +10,16 @@ void MyGame::on_receive(std::string cmd, std::vector<std::string>& args) {
             game_data.ballX = stoi(args.at(2));
             game_data.ballY = stoi(args.at(3));
         }
-    } else {
+    } 
+    else {
         std::cout << "Received: " << cmd << std::endl;
     }
+    if (cmd == "SCORES") {
+        if (args.size() == 2) {
+            scores.player1score = stoi(args.at(0));
+            scores.player2score = stoi(args.at(1));
+        }
+    } 
 }
 
 void MyGame::send(std::string message) {
@@ -44,7 +52,12 @@ void MyGame::update() {
     //std::cout << "player2.y = " << player2.y << std::endl;
     //std::cout << "ball.y = " << ball.y << std::endl;
     //std::cout << "ball.x = " << ball.x << std::endl;
+    p1score = scores.player1score;
+    p2score = scores.player2score;
+    //cout << "P1: " << p1score << std::endl;
+    //cout << "P2: " << p2score << std::endl;
 }
+
 
 // This was obtained at https://stackoverflow.com/questions/36449616/sdl2-how-to-draw-dotted-line
 // it uses the Bresenham Algoithm to create a dotted line
@@ -68,6 +81,7 @@ void MyGame::render(SDL_Renderer* renderer) {
     SDL_RenderFillRect(renderer, &player1);
     SDL_RenderFillRect(renderer, &player2);
     SDL_RenderFillRect(renderer, &ball);
-    //DrawDottedLine(renderer, 400, 0, 400, 600);
+    DrawDottedLine(renderer, 400, 0, 400, 600);
  }
+
 
