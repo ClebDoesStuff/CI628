@@ -7,7 +7,19 @@ const int HEIGHT = 600;
 
 const int USE_FULL_TEXTURE = NULL;
 
-void MyGame::on_receive(std::string cmd, std::vector<std::string>& args) {
+MyGame::MyGame(TTF_Font* font, SDL_Surface* background, SDL_Surface* batleft, SDL_Surface* batright, 
+    SDL_Surface* starball, Mix_Chunk* hitbat, Mix_Chunk* hitwall, Mix_Chunk* hitside) {
+    this->font = font;
+    this->background = background;
+    this->batleft = batleft;
+    this->batright = batright;
+    this->starball = starball;
+    this->hitbat = hitbat;
+    this->hitwall = hitwall;
+    this->hitside = hitside;
+}
+
+void MyGame::on_receive(string cmd, vector<string>& args) {
     if (cmd == "GAME_DATA") {
         // we should have exactly 4 arguments
         if (args.size() == 4) {
@@ -18,17 +30,30 @@ void MyGame::on_receive(std::string cmd, std::vector<std::string>& args) {
         }
     } 
     else {
-        std::cout << "Received: " << cmd << std::endl;
+        cout << "Received: " << cmd << endl;
     }
+
     if (cmd == "SCORES") {
         if (args.size() == 2) {
             scores.player1score = stoi(args.at(0));
             scores.player2score = stoi(args.at(1));
         }
-    } 
+    }
+
+    if (cmd == "BALL_HIT_BAT1" || cmd == "BALL_HIT_BAT2") {
+        PlaySound(hitbat, 0);
+    }
+    
+    if (cmd == "HIT_WALL_LEFTGAME_DATA" || cmd == "HIT_WALL_RIGHTGAME_DATA") {
+        PlaySound(hitwall, 0);
+    }
+
+    if (cmd == "HIT_WALL_UP" || cmd == "HIT_WALL_DOWN") {
+        PlaySound(hitside, 0);
+    }
 }
 
-void MyGame::send(std::string message) {
+void MyGame::send(string message) {
     messages.push_back(message);
 }
 
@@ -64,47 +89,28 @@ void MyGame::update() {
             //cout << "P2: " << p2score << std::endl;
 }
 
-void DrawSpecial(SDL_Renderer* renderer, const char* location, const SDL_Rect* rect) {
-    auto surface = IMG_Load(location);
-                        if (surface != nullptr) {
-                                //cout << location << " was loaded" << endl;
-                        }
-                        else {
-                                //cout << location << " has not been loaded" << endl;
-                        }
 
+void DrawSpecial(SDL_Renderer* renderer, SDL_Surface* surface, const SDL_Rect* rect) {
     auto texture = SDL_CreateTextureFromSurface(renderer, surface);
 
     SDL_RenderCopy(renderer, texture, USE_FULL_TEXTURE, rect);
-    SDL_FreeSurface(surface);
     SDL_DestroyTexture(texture);
 }
 
-void DrawImage(SDL_Renderer* renderer, const char* location, int x, int y, int w, int h) {
-    SDL_Rect dst = { x, y, w , h };
-    auto surface = IMG_Load(location);
-                        if (surface != nullptr) {
-                            //cout << location << " was loaded" << endl;
-                        }
-                        else {
-                            //cout << location << " has not been loaded" << endl;
-                        }
-
+void DrawImage(SDL_Renderer* renderer, SDL_Surface* surface, int x, int y, int w, int h) {
+    
+    SDL_Rect dst = { x, y, w, h };
     auto texture = SDL_CreateTextureFromSurface(renderer, surface);
 
     SDL_RenderCopy(renderer, texture, USE_FULL_TEXTURE, &dst);
-    SDL_FreeSurface(surface);
     SDL_DestroyTexture(texture);
 }
 
-void MyGame::DrawText(SDL_Renderer* renderer, const char* location, int fontsize, int score, int x, int y, int w, int h) {
-    TTF_Font* font = TTF_OpenFont(location, fontsize);
-                        if (font != nullptr) {
-                            //cout << "font was loaded" << endl;
-                        }
-                        else {
-                            //cout << "font has not been loaded" << endl;
-                        }
+void MyGame::PlaySound(Mix_Chunk* sound, int loops) {
+        Mix_PlayChannel(-1, sound, loops);
+}
+
+void MyGame::DrawText(SDL_Renderer* renderer, int score, int x, int y, int w, int h) {
     
     SDL_Color text_color = { 255, 255, 255, 255 };
     
@@ -114,49 +120,27 @@ void MyGame::DrawText(SDL_Renderer* renderer, const char* location, int fontsize
 
     if (text_surface != nullptr) {
         SDL_Texture* text_texture = SDL_CreateTextureFromSurface(renderer, text_surface);
+        SDL_FreeSurface(text_surface);
         if (text_texture != nullptr) {
             SDL_QueryTexture(text_texture, NULL, NULL, &w, &h);
 
-            SDL_Rect dst = { x,y,w,h };
+            SDL_Rect dst = { x, y, w, h };
 
             //NULL to draw 
-            SDL_RenderCopy(renderer, text_texture, NULL, &dst);
+            SDL_RenderCopy(renderer, text_texture, NULL, &dst);    
         }
-        SDL_FreeSurface(text_surface);
         SDL_DestroyTexture(text_texture);
     }
 }
 
-// This was obtained at https://stackoverflow.com/questions/36449616/sdl2-how-to-draw-dotted-line
-// it uses the Bresenham Algoithm to create a dotted line
-void DrawDottedLine(SDL_Renderer* renderer, int x0, int y0, int x1, int y1) {
-    int dx = abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
-    int dy = -abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
-    int err = dx + dy, e2;
-    int count = 0;
-    while (1) {
-        if (count < 8) { SDL_RenderDrawPoint(renderer, x0, y0); }
-        if (x0 == x1 && y0 == y1) break;
-        e2 = 2 * err;
-        if (e2 > dy) { err += dy; x0 += sx; }
-        if (e2 < dx) { err += dx; y0 += sy; }
-        count = (count + 1) % 20;
-    }
-    
-}
-
 void MyGame::render(SDL_Renderer* renderer) {
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    DrawImage(renderer, "assets/background.png", 0, 0, WIDTH, HEIGHT);
-    //DrawDottedLine(renderer, 400, 0, 400, 600);
+    //SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    DrawImage(renderer, background, 0, 0, WIDTH, HEIGHT); 
     //Draw Score
-    DrawText(renderer, "assets/Peepo.ttf", 64, p1score, 100, 20, 40, 40);
-    DrawText(renderer, "assets/Peepo.ttf", 64, p2score, 650, 20, 40, 40);
+    DrawText(renderer, p1score, 100, 20, 40, 40);
+    DrawText(renderer, p2score, 650, 20, 40, 40);
     //Draw player bats and ball
-    DrawSpecial(renderer, "assets/batleft.png", &player1);
-    DrawSpecial(renderer, "assets/batright.png", &player2);
-    DrawSpecial(renderer, "assets/starball.png", &ball);
+    DrawSpecial(renderer, batleft, &player1);
+    DrawSpecial(renderer, batright, &player2);
+    DrawSpecial(renderer, starball, &ball);
  }
-
-
-

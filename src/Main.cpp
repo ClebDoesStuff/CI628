@@ -1,7 +1,8 @@
 #include "SDL_net.h"
+#include "SDL_ttf.h"
+#include "SDL_mixer.h"
 
 #include "MyGame.h"
-#include "SDL_ttf.h"
 
 using namespace std;
 
@@ -10,7 +11,7 @@ const Uint16 PORT = 55555;
 
 bool is_running = true;
 
-MyGame* game = new MyGame();
+MyGame* game;
 
 static int on_receive(void* socket_ptr) {
     TCPsocket socket = (TCPsocket)socket_ptr;
@@ -140,16 +141,11 @@ int run_game() {
 }
 
 int main(int argc, char** argv) {
-
+   
     // Initialize SDL
     if (SDL_Init(0) == -1) {
         printf("SDL_Init: %s\n", SDL_GetError());
         exit(1);
-    }
-
-    if (TTF_Init() == -1) {
-        printf("TTF_Init: %s\n", SDL_GetError());
-        exit(5);
     }
 
     // Initialize SDL_net
@@ -174,6 +170,152 @@ int main(int argc, char** argv) {
         exit(4);
     }
 
+    // Initialize TTF
+    if (TTF_Init() == -1) {
+        printf("TTF_Init: %s\n", TTF_GetError());
+        exit(5);
+    }
+    
+    // Initialize IMG
+    int loadImg = IMG_INIT_JPG | IMG_INIT_PNG | IMG_INIT_TIF | IMG_INIT_WEBP;
+    int initialImg = IMG_Init(loadImg);
+    if ((loadImg & initialImg) != loadImg) {
+        printf("IMG_Init: Initialising image process failed, images unsupported!\n");
+        printf("IMG_Init: %s\n", IMG_GetError());
+    }
+    if (IMG_Init(0) == -1) {
+        printf("IMG_Init: %s\n", IMG_GetError());
+        exit(6);
+    }
+
+    // Initialize Mix
+    int loadMIX = MIX_INIT_FLAC | MIX_INIT_MID | MIX_INIT_MOD | MIX_INIT_MP3 | MIX_INIT_OGG | MIX_INIT_OPUS;
+    int initialMIX = Mix_Init(loadMIX);
+    if ((loadMIX & initialMIX) != loadMIX) {
+        printf("Mix_Init: Initialising image process failed, music unsupported!\n");
+        printf("Mix_Init: %s\n", Mix_GetError());
+    }
+    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024) == -1) {
+        printf("Mix_OpenAudio: %s\n", Mix_GetError());
+        exit(7);
+    }
+    else {
+        std::cout << "Audio is opened" << std::endl;
+    }
+
+    //Load Font
+    TTF_Font* font = TTF_OpenFont("assets/Peepo.ttf", 64);
+    if (font != nullptr) {
+        cout << "font was loaded" << endl;
+    }
+    else {
+        cout << "font is not loaded" << endl;
+        printf("TTF_Load: %s\n", TTF_GetError());
+    }
+
+    //Load Images
+    SDL_Surface* background = IMG_Load("assets/background.png");
+    
+    SDL_Surface* batleft = IMG_Load("assets/batleft.png");
+    
+    SDL_Surface* batright = IMG_Load("assets/batright.png");
+
+    SDL_Surface* starball = IMG_Load("assets/starball.png");
+
+    //Check Images aren't nullptr
+    if (background != nullptr) {
+        cout << "background is loaded" << endl;
+    }
+    else {
+        cout << "background is not loaded" << endl;
+        printf("TMG_Load: %s\n", IMG_GetError());
+    }
+    if (batleft != nullptr) {
+        cout << "batleft is loaded" << endl;
+    }
+    else {
+        cout << "batleft is not loaded" << endl;
+        printf("TMG_Load: %s\n", IMG_GetError());
+    }
+    if (batright != nullptr) {
+        cout << "batright is loaded" << endl;
+    }
+    else {
+        cout << "batright is not loaded" << endl;
+        printf("TMG_Load: %s\n", IMG_GetError());
+    }
+    if (starball != nullptr) {
+        cout << "starball is loaded" << endl;
+    }
+    else {
+        cout << "starball is not loaded" << endl;
+        printf("TMG_Load: %s\n", IMG_GetError());
+    }
+
+    //Load audio
+    Mix_Chunk* hitbat = Mix_LoadWAV("assets/hitbat.wav");
+    
+    Mix_Chunk* hitwall = Mix_LoadWAV("assets/hitwall.wav");
+
+    Mix_Chunk* hitside = Mix_LoadWAV("assets/hitside.wav");
+
+    Mix_Chunk* tbgm = Mix_LoadWAV("assets/bgm.wav");
+
+    Mix_Music* bgm = Mix_LoadMUS("assets/bgm2.mp3");
+
+    //Check audios aren't nullptr
+    if (bgm != nullptr) {
+        cout << "bgm is loaded" << endl;
+    }else{
+        printf("Mix_LoadMUS(\"bgm2.mp3\"): %s\n", Mix_GetError());
+    }
+
+    if (hitbat != nullptr) {
+        cout << "hitbat is loaded" << endl;
+    }
+    else {
+        cout << "hitbat is not loaded" << endl;
+        printf("Mix_LoadWAV: %s\n", Mix_GetError());
+    }
+    
+    if (hitwall != nullptr) {
+        cout << "hitwall is loaded" << endl;
+    }
+    else {
+        cout << "hitwall is not loaded" << endl;
+        printf("Mix_LoadWAV: %s\n", Mix_GetError());
+    }
+
+    if (hitside != nullptr) {
+        cout << "hitside is loaded" << endl;
+    }
+    else {
+        cout << "hitside is not loaded" << endl;
+        printf("Mix_LoadWAV: %s\n", Mix_GetError());
+    }
+
+    if (bgm != nullptr) {
+        cout << "bgm is loaded" << endl;
+    }
+    else {
+        cout << "bgm is not loaded" << endl;
+        printf("Mix_LoadWAV: %s\n", Mix_GetError());
+    }
+
+    //Change volume of sounds
+    Mix_VolumeChunk(hitbat, 1.5);
+    Mix_VolumeChunk(hitwall, 4);
+    Mix_VolumeChunk(hitside, 3);
+    
+    //Change volume of music
+    Mix_VolumeMusic(6);
+
+    //Play music
+    Mix_PlayMusic(bgm, -1);
+
+    //send variables to MyGame
+    game = new MyGame(font, background, batleft, batright, starball, hitbat, hitwall, hitside);
+
     SDL_CreateThread(on_receive, "ConnectionReceiveThread", (void*)socket);
     SDL_CreateThread(on_send, "ConnectionSendThread", (void*)socket);
 
@@ -186,6 +328,15 @@ int main(int argc, char** argv) {
 
     // Shutdown SDL_net
     SDLNet_Quit();
+
+    TTF_CloseFont(font);
+    SDL_FreeSurface(batleft);
+    SDL_FreeSurface(batright);
+    SDL_FreeSurface(background);
+    SDL_FreeSurface(starball);
+    Mix_FreeChunk(hitbat);
+    Mix_FreeChunk(hitwall);
+    Mix_FreeChunk(hitside);
 
     // Shutdown SDL
     SDL_Quit();
